@@ -1,0 +1,15 @@
+{
+  "appId": "com.reset.training",
+  "appName": "RESET Training",
+  "webDir": "www",
+  "server": {
+    "url": "https://gentle-fire-29b9.santanaalanmf.workers.dev/index.html",
+    "androidScheme": "https",
+    "allowNavigation": [
+      "gentle-fire-29b9.santanaalanmf.workers.dev"
+    ]
+  },
+  "android": {
+    "allowMixedContent": false
+  }
+}
