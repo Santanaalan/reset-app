@@ -1,0 +1,37 @@
+name: Compilar IPA (iPhone)
+on:
+  workflow_dispatch:
+jobs:
+  ipa:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 20 }
+      - name: Instalar dependencias
+        run: npm install
+      - name: Crear proyecto iOS
+        run: npx cap add ios
+      - name: Permisos y modos en segundo plano
+        run: |
+          P=ios/App/App/Info.plist
+          /usr/libexec/PlistBuddy -c "Add :NSLocationWhenInUseUsageDescription string RESET usa tu ubicación para medir distancia y ritmo de tu carrera." $P
+          /usr/libexec/PlistBuddy -c "Add :NSLocationAlwaysAndWhenInUseUsageDescription string RESET sigue midiendo tu carrera con la pantalla apagada." $P
+          /usr/libexec/PlistBuddy -c "Add :UIBackgroundModes array" $P
+          /usr/libexec/PlistBuddy -c "Add :UIBackgroundModes:0 string location" $P
+          /usr/libexec/PlistBuddy -c "Add :UIBackgroundModes:1 string audio" $P
+          cat $P
+      - name: Íconos
+        run: if [ -d assets ]; then npx capacitor-assets generate --ios; fi
+      - name: Sincronizar
+        run: npx cap sync ios
+      - name: Compilar sin firmar
+        run: |
+          xcodebuild -workspace ios/App/App.xcworkspace -scheme App -configuration Release -sdk iphoneos -derivedDataPath build CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO CODE_SIGN_IDENTITY="" build
+          mkdir Payload
+          cp -R build/Build/Products/Release-iphoneos/App.app Payload/
+          zip -qr RESET-Training.ipa Payload
+      - uses: actions/upload-artifact@v4
+        with:
+          name: RESET-Training-IPA
+          path: RESET-Training.ipa
